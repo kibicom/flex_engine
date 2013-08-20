@@ -1,0 +1,21 @@
+
+
+<!--собираем параметры из хеша строки запроса-->
+
+f:fill_from_hash
+
+>
+
+<!--размещаем контент страницы указанной в хеше-->
+f:tpl_struct_arr
+^
+tpl_path:[[f:struct_val^key:hash.page]]&
+node_class_query:.content_2&
+struct_res_key:&
+parse_arr:false&
+replace:true&
+rooted:false&
+append:false&
+parse_arr:false&
+ev_inject:true
+

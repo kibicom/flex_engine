@@ -1,0 +1,375 @@
+<!--
+        imag3
+        
+        Copyright 2012 Жлобенцев Владимир <dnclive@gmail.com>
+        
+        Шаблон верхнего уровня интернет магазина imag3
+        
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//RU"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
+
+<head>
+	<title>flex engine</title>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta name="generator" content="Geany 0.20" />
+	
+	<!--стили-->
+	
+	<link rel="stylesheet" type="text/css" href="res/je_mod/form/tpl/css.css"/>
+	<link rel="stylesheet" type="text/css" href="res/je_mod/form/tpl/waiter/waiter.css"/>
+	<link rel="stylesheet" type="text/css" href="res/je_mod/flex_engine/tpl/josi_store.css"/>
+	<link rel="stylesheet" type="text/css" href="res/je_mod/flex_engine/tpl/payment.css"/>
+	
+	<!--framework-->
+	<!--link rel="stylesheet" type="text/css" href="../release/dijit/themes/claro/claro.css"-->
+	<link rel="stylesheet" type="text/css" href="res/josi/js/jquery/release/css/ui-lightness/jquery-ui-1.8.18.custom.css"/>
+	
+	<!--javasctipt-->
+
+	<!--google analistics-->	
+	{{f:tpl^page_path:res/tpl/aquaon/google_analistics_code.tpl}}
+	
+	<!--yandex metric-->	
+	{{f:tpl^page_path:res/tpl/aquaon/yandex_metric_code_.tpl}}
+	
+	<!--DoJo-->
+	<script src="res/conf/dojo_config.js"></script>
+	
+	<!--продуктивный билд-->
+	<!--script src="res/josi/js/dojo/release/dojo/dojo/dojo.js"></script>
+	
+	<!--отладочный-->
+	<script src="res/josi/js/dojo/dev/dojo/dojo.js"></script>
+	
+	<!--jquery кеширование скриптов-->
+	<script src="res/josi/js/jquery/release/jquery-1.7.2.min.js"></script>
+	<!--script src="../jquery/js/jquery-ui-1.8.20.custom.min.js"></script>
+	<script src="../jquery/development-bundle/ui/i18n/jquery.ui.datepicker-ru.js"></script-->
+	
+
+	<!--скрипт выполняющий запуск сервиса-->
+	<script>
+		require(
+		//["tlib/tlib"],
+		[],
+		function(t_lib)
+		{
+			require(
+			[	
+				"tlib/tjosi",
+				"tlib/tres",
+			],
+			function(t_josi, t_res)
+			{
+				
+				//josi_conf.js
+				{{f:tpl^tpl_path:res/conf/josi_conf.js}}
+
+				//инициализация josi, запуск очереди задач
+				t_josi.f_cre({config:config});
+
+				//сохраняем service_conf из josi_conf.js в структуру локальных ресурсов
+				t_res.f_struct_res_arr_set(
+				{
+					key:"service_conf",
+					val:service_conf,
+				})
+
+				//излучение события load
+				t_josi.f_ev_load_emit();
+			
+				//var je_mod={};
+			
+				//App.start();
+			
+				
+			
+				return;
+			});
+		});
+	
+	</script>
+
+
+</head>
+
+<body 	class="body claro body_stl_smpl body_bg" 
+		ontouchmove_="event.preventDefault() ;"
+		data-josi-ev-resp="load"
+		data-josi-kvl-str="
+		f:waiter_show
+		
+		<!--новый правильный лоадер выключен пока не реализован механизм 
+		{{f:tpl^page_path:loader.scl&service:{{f:show_val^service&key:service}}&k:v}}-->
+
+		/*
+		{{f:tpl^page_path:loader.scl&service:res/je_mod/plex_engine/logo.tpl}}
+		*/
+		
+		>f:fill_from_hash
+		
+		<!--запрашиваем структуру запроса-->
+		>f:					res_struct_req&
+		kvl_context:		true
+		^
+		req_res_name:		res/je_mod/flex_engine/srq/get/tab_customer&
+		place_from:			tab_customer&
+		place_to:			srq.get.tab_customer&
+		replace:			true&
+		
+		<!--отправляем запрос на сервер получаем результат-->
+		>f:					josi_store_trans
+		^
+		metod:				POST&
+		place_to:			store.tab_customer&
+		get_dot_key:		srq.get.tab_customer&
+		replace:			true
+		
+		<!--если данные по номеру получены показываем их-->
+		>f:tpl&
+		if_exp: 			'#store.tab_customer.0#'!='' &
+		calc_key_limiter:	true&
+		^
+		tpl_path:			res/je_mod/flex_engine/tpl/customer_info.tpl&
+		node_class_query:	.content&
+		struct_res_key:		&
+		parse_arr:			true&
+		replace:			true&
+		rooted:				false&
+		append:				false&
+		
+		<!--иначе предлагаем форму ввода нового клиента-->
+		>f:tpl&
+		if_exp: 			'#store.tab_customer.0#'=='' &
+		calc_key_limiter:	true&
+		^
+		tpl_path:			res/je_mod/flex_engine/tpl/form_2.tpl&
+		node_class_query:	.content&
+		struct_res_key:		&
+		parse_arr:			false&
+		replace:			true&
+		rooted:				false&
+		append:				false&
+		
+		<!--подставляем телефон в поле формы-->
+		>f:struct_rel
+		^
+		place_from:			hash.phone&
+		place_to:			form.customer.phone&
+		replace:			false&
+		
+		<!--обновляем форму-->
+		>f:fill_form_from_struct_res
+		^
+		struct_res_key:			form.customer&
+		class_query:			.content&
+		
+		val_node_class_query:	.text_val .form_val&
+		
+		>f:waiter_hide"
+>
+	
+	<div class="main_main_bg">
+		<!--окно для вывода отладочной информации-->
+		<textarea class="trans_resp hidden">
+		
+		</textarea>
+		
+		<!--основной контент страницы-->
+		<div class="service_div content body_bg" style="height:100%; background:white;">
+			{{f:tpl^page_path:res/je_mod/flex_engine/tpl/logo.tpl}}
+		</div>
+		
+		<!--какой то мусор-->
+		<div class="hidden">
+					<input 	class="josi_form_input_div_stl_smpl" type="text" name="date1" id="time1" value="T15:00:00"
+						data-dojo-type_="dijit.form.TimeTextBox"
+						onChange="dojo.byId('val').value=arguments[0].toString().replace(/.*1970\s(\S+).*/,'T$1')"
+						required="true" />
+		</div>
+		
+		<div class="popup_div_1_1 hidden">
+			<div style="z-index: 1000;position: absolute;width: 100%;height: 100%;top: 0;margin: 0;">
+				<div class="div_tab" style="height:100%;width: 100%;">
+					<div class="popup_main_div div_cell"
+							data-josi-ev-resp="click"
+							data-josi-kvl-str="f:popup.close^node_class_query:.popup_div_1_1">
+						<div style="
+				top:-50%;
+				overflow: hidden;
+				width: 800px;
+				
+				background: white;
+				margin: 0 auto;
+				-moz-box-shadow: 0 0 10px rgba(0,0,0,0.5);
+				-webkit-box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+				box-shadow: 0 0 100px 0px black;
+				border-radius: 10px;">
+							<div>
+								
+								<div class="josi_store_div " style="width: 800px;height: 600px;background-color: #D2B645;">
+									<div style="margin:5px;height:590px;width:790px;float:left" class="map_node_2 ">
+									
+									</div>
+									<div style="margin-right:-50px;height:590px;width:50px;float:right" class="map_node_2_ ">
+										<div class="div_right" style="position:absolute;z-index: 1500;left: 1380px;">
+											<div 	class="red_btn_div btn_div btn_close_div popup_close_btn"
+													data-josi-ev-resp="click"
+													data-josi-kvl-str="f:popup.close^node_class_query:.popup_div_1_1">
+												<div style="cursor:pointer">
+													<img class="mi_name_img" src="res/je_mod/paradise_spa/img/menu/mi_gallery_back.png" alt="X">
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="hidden popup_shadow_back"></div>
+		</div>
+		
+		<div class="popup_div_1_2 hidden">
+			<div style="z-index: 1000;position: absolute;width: 100%;height: 100%;top: 0;margin: 0;">
+				<div class="div_tab" style="height:100%;width: 100%;">
+					<div 	class="popup_main_div div_cell"
+							style="background: transparent url('res/je_mod/paradise_spa/img/gallery_bg_1.jpg') repeat 0 0px;"
+							data-josi-ev-resp="click"
+							data-josi-ev-stop=true 
+							data-josi-kvl-str="
+							
+												f:popup.close^node_class_query:.popup_div_1_2
+																		
+												>f:f
+												^
+												mod_name:paradise_spa&
+												f_name:f_show_content&
+												node_class_name:content&
+												how:fast&
+												
+												>f:f
+												^
+												mod_name:paradise_spa&
+												f_name:f_show_content&
+												node_class_name:content_1&
+												how:fast&
+												
+												>f:f
+												^
+												mod_name:paradise_spa&
+												f_name:f_show_content&
+												node_class_name:content_2&
+												how:fast&
+												
+												/*
+												>f:hash_set^key:page&val_key:hash.prev_page&def_val:main
+												>f:hash_set^key:part&val_key:hash.prev_part&def_val:page
+												
+												>f:hash_set^key:prev_page
+												>f:hash_set^key:prev_part
+												*/
+												
+												>f:hash_set&
+												if_exp: '#hash.part#'=='logo' &
+												^
+												key:part&
+												val:page&
+							
+							">
+						<div style="
+									top:-50%;
+									overflow: hidden;
+									width: 1024px;
+									height:100%;
+									background: transparent;
+									margin: 0 auto;
+									-moz-box-shadow: 0 0 10px rgba(0,0,0,0.5);
+									-webkit-box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+									box-shadow: 0 0 100px 0px black;
+									border-radius: 10px;">
+							<div style="height:100%;">
+								
+								<div class="josi_store_div " style="width: 100%;height: 100%;background: transparent;;overflow:hidden">
+									<div style="margin:0px;height:100%;width:100%;background: transparent url('res/je_mod/paradise_spa/img/gallery_bg_1.jpg') no-repeat;" class="popup_content ">
+										
+									</div>
+									<div style="position: absolute;top: 5%;left: 80%;" class="map_node_2_ ">
+										<div class="div_right" style="position:absolute;z-index: 1500;">
+											<div 	class="red_btn_div btn_div btn_close_div popup_close_btn"
+													data-josi-ev-resp="click"
+													data-josi-ev-stop=true 
+													data-josi-kvl-str=
+													"
+														f:popup.close^node_class_query:.popup_div_1_2
+														
+														>f:f
+														^
+														mod_name:paradise_spa&
+														f_name:f_show_content&
+														node_class_name:content&
+														how:fast&
+														
+														>f:f
+														^
+														mod_name:paradise_spa&
+														f_name:f_show_content&
+														node_class_name:content_1&
+														how:fast&
+														
+														>f:f
+														^
+														mod_name:paradise_spa&
+														f_name:f_show_content&
+														node_class_name:content_2&
+														how:fast&
+														
+														/*
+														>f:hash_set^key:page&val_key:hash.prev_page&def_val:main
+														>f:hash_set^key:part&val_key:hash.prev_part&def_val:page
+														
+														>f:hash_set^key:prev_page
+														>f:hash_set^key:prev_part
+														*/
+														
+														>f:hash_set^key:gallery_part&
+														>f:hash_set^key:gallery_main_part&
+														
+														>f:hash_set&
+														if_exp: '#hash.part#'=='logo' &
+														^
+														key:part&
+														val:page&
+														
+													">
+												<div style="cursor:pointer">
+													<img class="mi_name_img" src="res/je_mod/paradise_spa/img/menu/mi_gallery_back.png" alt="X">
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="hidden popup_shadow_back"></div>
+		</div>
+		
+		
+		{{f:tpl^tpl_path:res/je_mod/form/tpl/popup/form.tpl}}
+
+		{{f:tpl^tpl_path:res/je_mod/flex_engine/tpl/waiter.tpl}}
+		
+		{{f:tpl^tpl_path:res/je_mod/formtpl//city_selector/form.tpl}}
+		
+		{{f:tpl^tpl_path:res/je_mod/form/tpl/other_browser.tpl}}
+	</div>
+</body>
+
+</html>
